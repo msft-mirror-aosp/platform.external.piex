@@ -31,6 +31,9 @@ cc_library_static {
 cc_library_shared {
     name: "libpiex",
     vendor_available: true,
+    vndk: {
+        enabled: true,
+    },
     srcs: [
         "src/tiff_parser.cc",
         "src/piex.cc",
