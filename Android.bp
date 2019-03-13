@@ -59,7 +59,6 @@ cc_library_shared {
     vndk: {
         enabled: true,
     },
-    double_loadable: true,
     srcs: [
         "src/tiff_parser.cc",
         "src/piex.cc",
