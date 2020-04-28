@@ -51,7 +51,7 @@ cc_library_static {
     },
 }
 
-cc_library {
+cc_library_shared {
     name: "libpiex",
     host_supported: true,
     defaults: ["piex_default_cflags"],
