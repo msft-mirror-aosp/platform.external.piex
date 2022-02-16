@@ -23,7 +23,6 @@
 
 #include "src/binary_parse/range_checked_byte_ptr.h"
 #include "src/image_type_recognition/image_type_recognition_lite.h"
-#include "src/piex_cr3.h"
 #include "src/tiff_parser.h"
 
 namespace piex {
@@ -650,8 +649,7 @@ bool IsRaw(StreamInterface* data) {
 }
 
 Error GetPreviewImageData(StreamInterface* data,
-                          PreviewImageData* preview_image_data,
-                          RawImageTypes* output_type) {
+                          PreviewImageData* preview_image_data) {
   const size_t bytes = BytesRequiredForIsRaw();
   if (data == nullptr || bytes == 0) {
     return kFail;
@@ -664,15 +662,11 @@ Error GetPreviewImageData(StreamInterface* data,
   }
   RangeCheckedBytePtr header_buffer(file_header.data(), file_header.size());
 
-  RawImageTypes type = RecognizeRawImageTypeLite(header_buffer);
-  if (output_type != nullptr) *output_type = type;
-  switch (type) {
+  switch (RecognizeRawImageTypeLite(header_buffer)) {
     case image_type_recognition::kArwImage:
       return ArwGetPreviewData(data, preview_image_data);
     case image_type_recognition::kCr2Image:
       return Cr2GetPreviewData(data, preview_image_data);
-    case image_type_recognition::kCr3Image:
-      return Cr3GetPreviewData(data, preview_image_data);
     case image_type_recognition::kDngImage:
       return DngGetPreviewData(data, preview_image_data);
     case image_type_recognition::kNefImage:
@@ -709,32 +703,24 @@ bool GetOrientation(StreamInterface* data, std::uint32_t* orientation) {
   using image_type_recognition::GetNumberOfBytesForIsOfType;
   using image_type_recognition::IsOfType;
 
-  size_t min_header_bytes =
-      std::max(GetNumberOfBytesForIsOfType(image_type_recognition::kRafImage),
-               GetNumberOfBytesForIsOfType(image_type_recognition::kCr3Image));
-
-  std::vector<std::uint8_t> file_header(min_header_bytes);
+  std::vector<std::uint8_t> file_header(
+      GetNumberOfBytesForIsOfType(image_type_recognition::kRafImage));
   if (data->GetData(0, file_header.size(), file_header.data()) != kOk) {
     return false;
   }
 
-  // For RAF and CR# files a special routine is necessary to get orientation.
-  // For others the general approach is sufficient.
+  // For RAF files a special routine is necessary to get orientation. For others
+  // the general approach is sufficient.
   if (IsOfType(RangeCheckedBytePtr(file_header.data(), file_header.size()),
                image_type_recognition::kRafImage)) {
     return RafGetOrientation(data, orientation);
-  } else if (IsOfType(
-                 RangeCheckedBytePtr(file_header.data(), file_header.size()),
-                 image_type_recognition::kCr3Image)) {
-    return Cr3GetOrientation(data, orientation);
   } else {
     return GetExifOrientation(data, 0 /* offset */, orientation);
   }
 }
 
 std::vector<std::string> SupportedExtensions() {
-  return {"ARW", "CR2", "CR3", "DNG", "NEF", "NRW",
-          "ORF", "PEF", "RAF", "RW2", "SRW"};
+  return {"ARW", "CR2", "DNG", "NEF", "NRW", "ORF", "PEF", "RAF", "RW2", "SRW"};
 }
 
 }  // namespace piex
