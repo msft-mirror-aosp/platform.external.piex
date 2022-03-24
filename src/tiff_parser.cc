@@ -720,8 +720,8 @@ bool TiffParser::ParseIfd(const std::uint32_t ifd_offset,
                           IfdVector* tiff_directory) {
   std::uint32_t next_ifd_offset;
   TiffDirectory tiff_ifd(static_cast<Endian>(endian_));
-  if (!ParseDirectory(tiff_offset_, ifd_offset, endian_, desired_tags,
-                      stream_, &tiff_ifd, &next_ifd_offset) ||
+  if (!ParseDirectory(tiff_offset_, ifd_offset, endian_, desired_tags, stream_,
+                      &tiff_ifd, &next_ifd_offset) ||
       !ParseSubIfds(tiff_offset_, desired_tags, max_number_ifds, endian_,
                     stream_, &tiff_ifd)) {
     return false;
